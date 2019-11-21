@@ -84,7 +84,7 @@ public:
     /**
      * Default copy constructor.
      */
-    grid_graph(const grid_graph& g) noexcept = default;
+    grid_graph(const grid_graph& g) = default;
     /**
      * Default move constructor.
      */
@@ -208,13 +208,13 @@ public:
      * @param v2 Target vertex.
      * @return Optional containing edge from v1 to v2.
      */
-    boost::optional<edge_t> get_edge(const vertex_t& v1, const vertex_t& v2) const noexcept
+    std::optional<edge_t> get_edge(const vertex_t& v1, const vertex_t& v2) const noexcept
     {
-        auto e = edge(v1, v2, *grid);
-        if (!e.second)
-            return boost::none;
+        auto [e, b] = edge(v1, v2, *grid);
+        if (!b)
+            return std::nullopt;
 
-        return e.first;
+        return e;
     }
     /**
      * Returns the edge from given vertex index v1 to given vertex index v2 if there exists one.
@@ -223,7 +223,7 @@ public:
      * @param v2 Target vertex.
      * @return Optional containing edge from v1 to v2.
      */
-    boost::optional<edge_t> get_edge(const vertex_index_t v1, const vertex_index_t v2) const noexcept
+    std::optional<edge_t> get_edge(const vertex_index_t v1, const vertex_index_t v2) const noexcept
     {
         return get_edge(get_vertex(v1), get_vertex(v2));
     }
@@ -387,6 +387,28 @@ public:
  * Cheated overload for the vertex_t type to actually print grid elements nicely.
  *
  * @tparam DIMENSIONS Template parameter determining grid's dimension.
+ * @param v Vertex to create a string representation for.
+ * @return String representation of v.
+ */
+template <std::size_t DIMENSIONS>
+std::string to_string(const boost::array<std::size_t, DIMENSIONS>& v)
+{
+    std::stringstream repr{};
+    repr << "{";
+    for (auto i = 0u; i < DIMENSIONS; ++i)
+    {
+        repr << v[i];
+        if (i != DIMENSIONS - 1)
+            repr << ",";
+    }
+    repr << "}";
+
+    return repr.str();
+}
+/**
+ * Cheated overload for the vertex_t type to actually print grid elements nicely.
+ *
+ * @tparam DIMENSIONS Template parameter determining grid's dimension.
  * @param os Stream into which the ASCII representation should be written.
  * @param v Vertex to write into os.
  * @return os after appending v.
@@ -417,22 +439,7 @@ template <std::size_t DIMENSIONS>
 std::ostream& operator<<(std::ostream& os, const std::pair<boost::array<std::size_t, DIMENSIONS>,
                                                            boost::array<std::size_t, DIMENSIONS>>& e)
 {
-    os << "{";
-    for (auto i = 0u; i < DIMENSIONS; ++i)
-    {
-        os << e.first[i];
-        if (i != DIMENSIONS - 1)
-            os << ",";
-    }
-    os << "} -> {";
-    for (auto i = 0u; i < DIMENSIONS; ++i)
-    {
-        os << e.second[i];
-        if (i != DIMENSIONS - 1)
-            os << ",";
-    }
-    os << "}";
-
+    os << e.first << " -> " << e.second;
     return os;
 }
 

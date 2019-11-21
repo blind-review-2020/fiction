@@ -545,10 +545,10 @@ protected:
             z_stack& operator=(z_stack&& rhs) = delete;
             /**
              * Overload of operator[] to access faces in the layout. This last proxy stage returns the actual face at
-             * position (x, y, z) or boost::none if it is located outside of the layout boundaries.
+             * position (x, y, z) or std::nullopt if it is located outside of the layout boundaries.
              *
              * @param z z-dimension of the desired face.
-             * @return Face at position (x, y, z) or boost::none if it is located outside of layout's boundaries.
+             * @return Face at position (x, y, z) or std::nullopt if it is located outside of layout's boundaries.
              */
             face operator[](const std::size_t z);
             /**

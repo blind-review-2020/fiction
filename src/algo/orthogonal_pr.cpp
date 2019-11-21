@@ -57,9 +57,8 @@ orthogonal_pr::jdfs_ordering orthogonal_pr::jdfs_order() const
     const std::function<void(const logic_network::vertex)>
             jdfs = [&](const logic_network::vertex _v)
     {
-        auto iav = network->inv_adjacent_vertices(_v, io_ports);
         // if all predecessors are yet discovered
-        if (std::all_of(iav.begin(), iav.end(), is_discovered))
+        if (auto iav = network->inv_adjacent_vertices(_v, io_ports); std::all_of(iav.begin(), iav.end(), is_discovered))
         {
             discovered[_v] = true;
             ordering.push_back(_v);
@@ -278,12 +277,11 @@ void orthogonal_pr::orthogonal_embedding(red_blue_coloring& rb_coloring, const j
             if (rb_coloring[e1] == rb_coloring[e2] && rb_coloring[e1] == rb_color::RED)
             {
                 // determine y-position
-                auto max_y = *std::max_element(evp.begin(), evp.end(),
-                                               [&](const std::pair<logic_network::edge, logic_network::vertex>& ev1,
-                                                   const std::pair<logic_network::edge, logic_network::vertex>& ev2)
-                                               {return pos[ev1.second][Y] <= pos[ev2.second][Y];});
+                auto max_y = std::max_element(evp.begin(), evp.end(),
+                                              [&pos](const auto& ev1, const auto& ev2)
+                                              {return pos[ev1.second][Y] <= pos[ev2.second][Y];})->second;
 
-                auto const y_pos = pos[max_y.second][Y];
+                auto const y_pos = pos[max_y][Y];
 
                 t = fcn_gate_layout::tile{x_helper, y_pos, GROUND};
                 ++x_helper;
@@ -292,12 +290,11 @@ void orthogonal_pr::orthogonal_embedding(red_blue_coloring& rb_coloring, const j
             else if (rb_coloring[e1] == rb_coloring[e2] && rb_coloring[e1] == rb_color::BLUE)
             {
                 // determine x-position
-                auto max_x = *std::max_element(evp.begin(), evp.end(),
-                                               [&pos](const std::pair<logic_network::edge, logic_network::vertex>& ev1,
-                                                      const std::pair<logic_network::edge, logic_network::vertex>& ev2)
-                                               {return pos[ev1.second][X] <= pos[ev2.second][X];});
+                auto max_x = std::max_element(evp.begin(), evp.end(),
+                                              [&pos](const auto& ev1, const auto& ev2)
+                                              {return pos[ev1.second][X] <= pos[ev2.second][X];})->second;
 
-                auto const x_pos = pos[max_x.second][X];
+                auto const x_pos = pos[max_x][X];
 
                 t = fcn_gate_layout::tile{x_pos, y_helper, GROUND};
                 ++y_helper;
@@ -315,12 +312,8 @@ void orthogonal_pr::orthogonal_embedding(red_blue_coloring& rb_coloring, const j
             pos.emplace(v, t);
 
             // do routing dependent on colors
-            for (auto& ev : evp)
+            for (auto [pre_e, pre_v] : evp)
             {
-                // previous edge
-                auto pre_e = ev.first;
-                // previous vertex
-                const auto pre_v = ev.second;
                 // previous tile
                 const auto pre_t = pos[pre_v];
 

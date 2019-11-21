@@ -62,197 +62,197 @@ private:
     // ************************************************************
 
     const fcn_gate inverter_straight =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', 'x', 'x', 'x', ' '},
-         {' ', 'x', ' ', 'x', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', 'x', 'x', 'x', ' '},
+                     {' ', 'x', ' ', 'x', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     const fcn_gate inverter_bent =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', ' ', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', ' ', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate conjunction =
-    {{
-         {' ', ' ', '0', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {'x', 'x', 'x', 'x', 'x'},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', '0', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {'x', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     const fcn_gate disjunction =
-    {{
-         {' ', ' ', '1', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {'x', 'x', 'x', 'x', 'x'},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', '1', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {'x', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     const fcn_gate majority =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {'x', 'x', 'x', 'x', 'x'},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {'x', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     const fcn_gate fan_out_1_2 =
-    {{
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '},
-         {'x', 'x', 'x', 'x', 'x'},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {'x', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     const fcn_gate fan_out_1_3 =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {'x', 'x', 'x', 'x', 'x'},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {'x', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     // ************************************************************
     // ************************** Wires ***************************
     // ************************************************************
 
     const fcn_gate center_wire =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '}
+             }};
 
     const fcn_gate inner_side_wire =
-    {{
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '}
-    }};
+            {{
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '}
+             }};
 
     const fcn_gate outer_side_wire =
-    {{
-         {' ', ' ', ' ', ' ', 'x'},
-         {' ', ' ', ' ', ' ', 'x'},
-         {' ', ' ', ' ', ' ', 'x'},
-         {' ', ' ', ' ', ' ', 'x'},
-         {' ', ' ', ' ', ' ', 'x'}
-    }};
+            {{
+                     {' ', ' ', ' ', ' ', 'x'},
+                     {' ', ' ', ' ', ' ', 'x'},
+                     {' ', ' ', ' ', ' ', 'x'},
+                     {' ', ' ', ' ', ' ', 'x'},
+                     {' ', ' ', ' ', ' ', 'x'}
+             }};
 
     const fcn_gate center_bent_wire =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate inner_center_to_inner_center_bent_wire =
-    {{
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate inner_center_to_center_bent_wire =
-    {{
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate inner_center_to_outer_center_bent_wire =
-    {{
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate inner_center_to_outer_side_bent_wire =
-    {{
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', ' '},
-         {' ', ' ', ' ', 'x', 'x'}
-    }};
+            {{
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', ' '},
+                     {' ', ' ', ' ', 'x', 'x'}
+             }};
 
     const fcn_gate center_to_inner_center_bent_wire =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate outer_center_to_center_bent_wire =
-    {{
-         {' ', 'x', ' ', ' ', ' '},
-         {' ', 'x', ' ', ' ', ' '},
-         {' ', 'x', 'x', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', 'x', ' ', ' ', ' '},
+                     {' ', 'x', ' ', ' ', ' '},
+                     {' ', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate outer_center_to_outer_center_bent_wire =
-    {{
-         {' ', 'x', ' ', ' ', ' '},
-         {' ', 'x', ' ', ' ', ' '},
-         {' ', 'x', ' ', ' ', ' '},
-         {' ', 'x', 'x', 'x', 'x'},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', 'x', ' ', ' ', ' '},
+                     {' ', 'x', ' ', ' ', ' '},
+                     {' ', 'x', ' ', ' ', ' '},
+                     {' ', 'x', 'x', 'x', 'x'},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate outer_side_to_outer_side_bent_wire =
-    {{
-         {'x', ' ', ' ', ' ', ' '},
-         {'x', ' ', ' ', ' ', ' '},
-         {'x', ' ', ' ', ' ', ' '},
-         {'x', ' ', ' ', ' ', ' '},
-         {'x', 'x', 'x', 'x', 'x'}
-    }};
+            {{
+                     {'x', ' ', ' ', ' ', ' '},
+                     {'x', ' ', ' ', ' ', ' '},
+                     {'x', ' ', ' ', ' ', ' '},
+                     {'x', ' ', ' ', ' ', ' '},
+                     {'x', 'x', 'x', 'x', 'x'}
+             }};
 
     const fcn_gate primary_input_port =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'i', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'i', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     const fcn_gate primary_output_port =
-    {{
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'x', ' ', ' '},
-         {' ', ' ', 'o', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '},
-         {' ', ' ', ' ', ' ', ' '}
-    }};
+            {{
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'x', ' ', ' '},
+                     {' ', ' ', 'o', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '},
+                     {' ', ' ', ' ', ' ', ' '}
+             }};
 
     /**
      * Shortcut for a list of ports.
@@ -270,71 +270,71 @@ private:
      * Lookup table for wire rotations. Maps ports to corresponding wires.
      */
     port_gate_map wire_map =
-    {
-        // center wire
-        {{{port(2, 0)}, {port(2, 4)}}, center_wire},
-        {{{port(2, 4)}, {port(2, 0)}}, center_wire},
-        {{{port(0, 2)}, {port(4, 2)}}, rotate_90(center_wire)},
-        {{{port(4, 2)}, {port(0, 2)}}, rotate_90(center_wire)},
-        // inner side wire
-        {{{port(3, 0)}, {port(3, 4)}}, inner_side_wire},
-        {{{port(3, 4)}, {port(3, 0)}}, inner_side_wire},
-        {{{port(0, 3)}, {port(4, 3)}}, rotate_90(inner_side_wire)},
-        {{{port(4, 3)}, {port(0, 3)}}, rotate_90(inner_side_wire)},
-        {{{port(1, 0)}, {port(1, 4)}}, rotate_180(inner_side_wire)},
-        {{{port(1, 4)}, {port(1, 0)}}, rotate_180(inner_side_wire)},
-        {{{port(0, 1)}, {port(4, 1)}}, rotate_270(inner_side_wire)},
-        {{{port(4, 1)}, {port(0, 1)}}, rotate_270(inner_side_wire)},
-        // outer side wire
-        {{{port(4, 0)}, {port(4, 4)}}, outer_side_wire},
-        {{{port(4, 4)}, {port(4, 0)}}, outer_side_wire},
-        {{{port(0, 4)}, {port(4, 4)}}, rotate_90(outer_side_wire)},
-        {{{port(4, 4)}, {port(0, 4)}}, rotate_90(outer_side_wire)},
-        {{{port(0, 0)}, {port(0, 4)}}, rotate_180(outer_side_wire)},
-        {{{port(0, 4)}, {port(0, 0)}}, rotate_180(outer_side_wire)},
-        {{{port(0, 0)}, {port(4, 0)}}, rotate_270(outer_side_wire)},
-        {{{port(4, 0)}, {port(0, 0)}}, rotate_270(outer_side_wire)},
-        // center bent wire
-        {{{port(2, 0)}, {port(4, 2)}}, center_bent_wire},
-        {{{port(4, 2)}, {port(2, 0)}}, center_bent_wire},
-        {{{port(4, 2)}, {port(2, 4)}}, rotate_90(center_bent_wire)},
-        {{{port(2, 4)}, {port(4, 2)}}, rotate_90(center_bent_wire)},
-        {{{port(0, 2)}, {port(2, 4)}}, rotate_180(center_bent_wire)},
-        {{{port(2, 4)}, {port(0, 2)}}, rotate_180(center_bent_wire)},
-        {{{port(2, 0)}, {port(0, 2)}}, rotate_270(center_bent_wire)},
-        {{{port(0, 2)}, {port(2, 0)}}, rotate_270(center_bent_wire)}
-        // TODO more wires go here!
-    };
+            {
+                    // center wire
+                    {{{port(2, 0, 1)}, {port(2, 4, 1)}}, center_wire},
+                    {{{port(2, 4, 1)}, {port(2, 0, 1)}}, center_wire},
+                    {{{port(0, 2, 1)}, {port(4, 2, 1)}}, rotate_90(center_wire)},
+                    {{{port(4, 2, 1)}, {port(0, 2, 1)}}, rotate_90(center_wire)},
+                    // inner side wire
+                    {{{port(3, 0, 1)}, {port(3, 4, 1)}}, inner_side_wire},
+                    {{{port(3, 4, 1)}, {port(3, 0, 1)}}, inner_side_wire},
+                    {{{port(0, 3, 1)}, {port(4, 3, 1)}}, rotate_90(inner_side_wire)},
+                    {{{port(4, 3, 1)}, {port(0, 3, 1)}}, rotate_90(inner_side_wire)},
+                    {{{port(1, 0, 1)}, {port(1, 4, 1)}}, rotate_180(inner_side_wire)},
+                    {{{port(1, 4, 1)}, {port(1, 0, 1)}}, rotate_180(inner_side_wire)},
+                    {{{port(0, 1, 1)}, {port(4, 1, 1)}}, rotate_270(inner_side_wire)},
+                    {{{port(4, 1, 1)}, {port(0, 1, 1)}}, rotate_270(inner_side_wire)},
+                    // outer side wire
+                    {{{port(4, 0, 1)}, {port(4, 4, 1)}}, outer_side_wire},
+                    {{{port(4, 4, 1)}, {port(4, 0, 1)}}, outer_side_wire},
+                    {{{port(0, 4, 1)}, {port(4, 4, 1)}}, rotate_90(outer_side_wire)},
+                    {{{port(4, 4, 1)}, {port(0, 4, 1)}}, rotate_90(outer_side_wire)},
+                    {{{port(0, 0, 1)}, {port(0, 4, 1)}}, rotate_180(outer_side_wire)},
+                    {{{port(0, 4, 1)}, {port(0, 0, 1)}}, rotate_180(outer_side_wire)},
+                    {{{port(0, 0, 1)}, {port(4, 0, 1)}}, rotate_270(outer_side_wire)},
+                    {{{port(4, 0, 1)}, {port(0, 0, 1)}}, rotate_270(outer_side_wire)},
+                    // center bent wire
+                    {{{port(2, 0, 1)}, {port(4, 2, 1)}}, center_bent_wire},
+                    {{{port(4, 2, 1)}, {port(2, 0, 1)}}, center_bent_wire},
+                    {{{port(4, 2, 1)}, {port(2, 4, 1)}}, rotate_90(center_bent_wire)},
+                    {{{port(2, 4, 1)}, {port(4, 2, 1)}}, rotate_90(center_bent_wire)},
+                    {{{port(0, 2, 1)}, {port(2, 4, 1)}}, rotate_180(center_bent_wire)},
+                    {{{port(2, 4, 1)}, {port(0, 2, 1)}}, rotate_180(center_bent_wire)},
+                    {{{port(2, 0, 1)}, {port(0, 2, 1)}}, rotate_270(center_bent_wire)},
+                    {{{port(0, 2, 1)}, {port(2, 0, 1)}}, rotate_270(center_bent_wire)}
+                    // TODO more wires go here!
+            };
     /**
      * Lookup table for inverter rotations. Maps ports to corresponding inverters.
      */
     port_gate_map inverter_map =
-    {
-        // straight inverters
-        {{{port(2, 0)}, {port(2, 4)}}, inverter_straight},
-        {{{port(4, 2)}, {port(0, 2)}}, rotate_90(inverter_straight)},
-        {{{port(2, 4)}, {port(2, 0)}}, rotate_180(inverter_straight)},
-        {{{port(0, 2)}, {port(4, 2)}}, rotate_270(inverter_straight)},
-        // without outputs
-        {{{port(2, 0)}, {}}, inverter_straight},
-        {{{port(4, 2)}, {}}, rotate_90(inverter_straight)},
-        {{{port(2, 4)}, {}}, rotate_180(inverter_straight)},
-        {{{port(0, 2)}, {}}, rotate_270(inverter_straight)},
-        // without inputs
-        {{{}, {port(2, 4)}}, inverter_straight},
-        {{{}, {port(0, 2)}}, rotate_90(inverter_straight)},
-        {{{}, {port(2, 0)}}, rotate_180(inverter_straight)},
-        {{{}, {port(4, 2)}}, rotate_270(inverter_straight)},
-        // bent inverters
-        {{{port(2, 0)}, {port(4, 2)}}, inverter_bent},
-        {{{port(4, 2)}, {port(2, 0)}}, inverter_bent},
-        {{{port(4, 2)}, {port(2, 4)}}, rotate_90(inverter_bent)},
-        {{{port(2, 4)}, {port(4, 2)}}, rotate_90(inverter_bent)},
-        {{{port(0, 2)}, {port(2, 4)}}, rotate_180(inverter_bent)},
-        {{{port(2, 4)}, {port(0, 2)}}, rotate_180(inverter_bent)},
-        {{{port(2, 0)}, {port(0, 2)}}, rotate_270(inverter_bent)},
-        {{{port(0, 2)}, {port(2, 0)}}, rotate_270(inverter_bent)}
-    };
+            {
+                    // straight inverters
+                    {{{port(2, 0, 1)}, {port(2, 4, 1)}}, inverter_straight},
+                    {{{port(4, 2, 1)}, {port(0, 2, 1)}}, rotate_90(inverter_straight)},
+                    {{{port(2, 4, 1)}, {port(2, 0, 1)}}, rotate_180(inverter_straight)},
+                    {{{port(0, 2, 1)}, {port(4, 2, 1)}}, rotate_270(inverter_straight)},
+                    // without outputs
+                    {{{port(2, 0, 1)}, {}}, inverter_straight},
+                    {{{port(4, 2, 1)}, {}}, rotate_90(inverter_straight)},
+                    {{{port(2, 4, 1)}, {}}, rotate_180(inverter_straight)},
+                    {{{port(0, 2, 1)}, {}}, rotate_270(inverter_straight)},
+                    // without inputs
+                    {{{}, {port(2, 4, 1)}}, inverter_straight},
+                    {{{}, {port(0, 2, 1)}}, rotate_90(inverter_straight)},
+                    {{{}, {port(2, 0, 1)}}, rotate_180(inverter_straight)},
+                    {{{}, {port(4, 2, 1)}}, rotate_270(inverter_straight)},
+                    // bent inverters
+                    {{{port(2, 0, 1)}, {port(4, 2, 1)}}, inverter_bent},
+                    {{{port(4, 2, 1)}, {port(2, 0, 1)}}, inverter_bent},
+                    {{{port(4, 2, 1)}, {port(2, 4, 1)}}, rotate_90(inverter_bent)},
+                    {{{port(2, 4, 1)}, {port(4, 2, 1)}}, rotate_90(inverter_bent)},
+                    {{{port(0, 2, 1)}, {port(2, 4, 1)}}, rotate_180(inverter_bent)},
+                    {{{port(2, 4, 1)}, {port(0, 2, 1)}}, rotate_180(inverter_bent)},
+                    {{{port(2, 0, 1)}, {port(0, 2, 1)}}, rotate_270(inverter_bent)},
+                    {{{port(0, 2, 1)}, {port(2, 0, 1)}}, rotate_270(inverter_bent)}
+            };
     /**
      * Returns the port equivalent of the given direction. Only single directions are accepted.
      *

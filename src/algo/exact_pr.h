@@ -7,7 +7,7 @@
 
 #include "place_route.h"
 #include "exact_pr_config.h"
-#include <boost/format.hpp>
+#include "fmt/format.h"
 #include <z3++.h>
 
 /**

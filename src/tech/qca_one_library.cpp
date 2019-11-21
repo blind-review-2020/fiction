@@ -253,11 +253,10 @@ fcn_gate qca_one_library::set_up_gate(const fcn_gate_layout::tile& t)
         }
         case operation::MAJ:
         {
-            auto dirs = layout->get_unused_tile_dirs(t);
             // no need to rotate majority
             auto maj = majority;
 
-            if (dirs.count() == 0)
+            if (auto dirs = layout->get_unused_tile_dirs(t); dirs.count() == 0)
                 return maj;
             else if (dirs.count() == 1)
                 return mark_1_io(maj, dirs);
@@ -306,11 +305,10 @@ fcn_gate qca_one_library::set_up_gate(const fcn_gate_layout::tile& t)
         }
         case operation::F1O3:
         {
-            auto dirs = layout->get_unused_tile_dirs(t);
             // no need to rotate F1O3
             auto fan_out = fan_out_1_3;
 
-            if (dirs == layout::DIR_NESW)
+            if (auto dirs = layout->get_unused_tile_dirs(t); dirs == layout::DIR_NESW)
                 return mark_4_io_fan_out(fan_out);
             else
                 return fan_out;
@@ -367,27 +365,27 @@ fcn_gate qca_one_library::set_up_gate(const fcn_gate_layout::tile& t)
 qca_one_library::port qca_one_library::dir_to_port(const layout::directions d) const
 {
     if (d == layout::DIR_N)
-        return {2, 0};
+        return port{2, 0, 1};
     else if (d == layout::DIR_E)
-        return {4, 2};
+        return port{4, 2, 1};
     else if (d == layout::DIR_S)
-        return {2, 4};
+        return port{2, 4, 1};
     else if (d == layout::DIR_W)
-        return {0, 2};
+        return port{0, 2, 1};
 
     throw std::invalid_argument("Given direction does not have a single port equivalence.");
 }
 
 qca_one_library::port qca_one_library::opposite(const port& p) const
 {
-    if (p == port(2, 0))
-        return {2, 4};
-    else if (p == port(4, 2))
-        return {0, 2};
-    else if (p == port(2, 4))
-        return {2, 0};
-    else if (p == port(0, 2))
-        return {4, 2};
+    if (p == port{2, 0, 1})
+        return port{2, 4, 1};
+    else if (p == port{4, 2, 1})
+        return port{0, 2, 1};
+    else if (p == port{2, 4, 1})
+        return port{2, 0, 1};
+    else if (p == port{0, 2, 1})
+        return port{4, 2, 1};
 
     throw std::invalid_argument("Given port is not located on tile's border.");
 }

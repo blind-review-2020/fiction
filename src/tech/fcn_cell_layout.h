@@ -79,9 +79,9 @@ public:
      */
     explicit fcn_cell_layout(fcn_gate_library_ptr&& lib);
     /**
-     * Default copy constructor.
+     * Copy constructor is not available.
      */
-    fcn_cell_layout(const fcn_cell_layout& fcl) noexcept = default;
+    fcn_cell_layout(const fcn_cell_layout& fcl) = delete;
     /**
      * Default move constructor.
      */
@@ -89,15 +89,15 @@ public:
     /**
      * Default destructor.
      */
-    ~fcn_cell_layout() = default;
+    ~fcn_cell_layout() override = default;
     /**
-     * Default assignment operator.
+     * Assignment operator is not available.
      */
-    fcn_cell_layout& operator=(const fcn_cell_layout& rhs) noexcept = default;
+    fcn_cell_layout& operator=(const fcn_cell_layout& rhs) = delete;
     /**
-     * Default move operator.
+     * Move assignment operator is not available.
      */
-    fcn_cell_layout& operator=(fcn_cell_layout&& rhs) noexcept = default;
+    fcn_cell_layout& operator=(fcn_cell_layout&& rhs) = delete;
     /**
      * Function alias for get_vertices using perfect forwarding and the name cells to fit naming in fcn_cell_layout.
      *
@@ -187,12 +187,12 @@ public:
     /**
      * Determines the given cell's clock number by consulting the stored clocking cutout in case of regular clockings,
      * while taking library's gate size into account, and looks up in the clocking map if clocking is irregular. If no
-     * entry has been stored for irregular clockings yet, boost::none is returned.
+     * entry has been stored for irregular clockings yet, std::nullopt is returned.
      *
      * @param c Cell whose clock number is desired.
      * @return Clock number of c.
      */
-    boost::optional<fcn_clock::zone> cell_clocking(const cell& c) const noexcept;
+    std::optional<fcn_clock::zone> cell_clocking(const cell& c) const noexcept;
     /**
      * Assigns an FCN gate to a region beginning with cell c in the top left corner (lowest x, y position). The gate
      * then spans to the bottom right corner (highest x, y position).

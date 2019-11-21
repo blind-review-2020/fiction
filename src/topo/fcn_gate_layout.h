@@ -9,8 +9,8 @@
 #include "logic_network.h"
 #include "directions.h"
 #include "energy_model.h"
-#include <boost/optional.hpp>
-#include <boost/variant.hpp>
+#include <optional>
+#include <variant>
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
 
@@ -62,6 +62,10 @@ public:
      * Granting access to private data members for fcn_cell_layout.
      */
     friend class fcn_cell_layout;
+    /**
+     * Granting access to private data members for design_checker.
+     */
+    friend class design_checker;
     /**
      * Standard constructor. Creates an FCN gate layout by the means of an array determining its size
      * as well as a clocking scheme defining its data flow possibilities.
@@ -129,9 +133,14 @@ public:
      */
     fcn_gate_layout& operator=(const fcn_gate_layout& rhs) = delete;
     /**
-     * Move operator is not available.
+     * Move assignment operator is not available.
      */
     fcn_gate_layout& operator=(fcn_gate_layout&& rhs) = delete;
+
+    /**
+     * Returns the clocking scheme used in this layout.
+     */
+    fcn_clocking_scheme get_clocking_scheme();
 
     /**
      * Function alias for get_vertices using perfect forwarding and the name tiles to fit naming in fcn_gate_layout.
@@ -238,21 +247,21 @@ public:
     /**
      * Determines the given tile's clock number by consulting the stored clocking cutout in case of regular clockings,
      * and looks up in the clocking map if clocking is irregular. If no entry has been stored for irregular clockings
-     * yet, boost::none is returned.
+     * yet, std::nullopt is returned.
      *
      * @param t Tile whose clock number is desired.
      * @return Clock number of t.
      */
-    boost::optional<fcn_clock::zone> tile_clocking(const tile& t) const noexcept;
+    std::optional<fcn_clock::zone> tile_clocking(const tile& t) const noexcept;
     /**
      * Determines the given index' tile's clock number by consulting the stored clocking cutout in case of regular
      * clockings, and looks up in the clocking map if clocking is irregular. If no entry has been stored for irregular
-     * clockings yet, boost::none is returned.
+     * clockings yet, std::nullopt is returned.
      *
      * @param t Tile index whose tile's clock number is desired.
      * @return Clock number of t's tile.
      */
-    boost::optional<fcn_clock::zone> tile_clocking(const tile_index t) const noexcept;
+    std::optional<fcn_clock::zone> tile_clocking(const tile_index t) const noexcept;
     /**
      * Assigns tile t with logic_network::vertex v.
      *
@@ -267,12 +276,12 @@ public:
      */
     void dissociate_logic_vertex(const tile& t) noexcept;
     /**
-     * Returns the logic_network::vertex assigned to tile t iff there is one. Returns boost::none otherwise.
+     * Returns the logic_network::vertex assigned to tile t iff there is one. Returns std::nullopt otherwise.
      *
      * @param t Tile whose assigned logic vertex is desired.
-     * @return Vertex associated with t iff there is one, boost::none otherwise.
+     * @return Vertex associated with t iff there is one, std::nullopt otherwise.
      */
-    boost::optional<logic_network::vertex> get_logic_vertex(const tile& t) const noexcept;
+    std::optional<logic_network::vertex> get_logic_vertex(const tile& t) const noexcept;
     /**
      * Checks whether a logic vertex is assigned to given tile t at all.
      *
@@ -289,12 +298,12 @@ public:
      */
     bool has_logic_vertex(const tile& t, const logic_network::vertex v) const noexcept;
     /**
-     * Returns the tile to which logic_network::vertex v is assigned iff there is one. Returns boost::none otherwise.
+     * Returns the tile to which logic_network::vertex v is assigned iff there is one. Returns std::nullopt otherwise.
      *
      * @param v Logic vertex whose tile is desired.
-     * @return Tile associated with v iff there is one, boost::none otherwise.
+     * @return Tile associated with v iff there is one, std::nullopt otherwise.
      */
-    boost::optional<tile> get_logic_tile(const logic_network::vertex v) const noexcept;
+    std::optional<tile> get_logic_tile(const logic_network::vertex v) const noexcept;
     /**
      * Assigns tile t with logic_network::edge e.
      *
@@ -359,29 +368,33 @@ public:
     /**
      * A variant of either a gate or a wire necessary for data flow.
      */
-    using gate_or_wire = boost::variant<logic_network::vertex, logic_network::edge>;
+    using gate_or_wire = std::variant<logic_network::vertex, logic_network::edge>;
+    /**
+     * A tile associated with its assigned gate or wire.
+     */
+    using tile_assignment = std::pair<tile, gate_or_wire>;
 private:
     /**
      * Checks if there is a valid data flow from given gate_or_wire to given tile at or vice versa. A data flow is
      * characterized by a vertex to edge, edge to edge, or edge to vertex connection according to the stored
-     * logic_network. The respective target element is returned if there is one. boost::none otherwise.
+     * logic_network. The respective target element is returned if there is one. std::nullopt otherwise.
      *
      * @param gw Gate or wire as starting/ending point of data flow.
      * @param at Adjacent tile of data flow to check.
      * @param out Flag to determine direction of data flow to check. True: gw -> at. False: at -> gw.
      * @return Target gate_or_wire element iff data flows from gw to at or at to gw according to network.
-     *         boost::none otherwise.
+     *         std::nullopt otherwise.
      */
-    boost::optional<gate_or_wire> is_data_flow(const gate_or_wire& gw, const tile& at, const bool out) const noexcept;
+    std::optional<gate_or_wire> is_data_flow(const gate_or_wire& gw, const tile& at, const bool out) const noexcept;
 public:
     /**
      * Public proxy for outgoing is_data_flow without the weird bool flag. For information see is_data_flow.
      */
-    boost::optional<gate_or_wire> is_out_data_flow(const gate_or_wire& gw, const tile& at) const noexcept;
+    std::optional<gate_or_wire> is_out_data_flow(const gate_or_wire& gw, const tile& at) const noexcept;
     /**
      * Public proxy for incoming is_data_flow without the weird bool flag. For information see is_data_flow.
      */
-    boost::optional<gate_or_wire> is_in_data_flow(const gate_or_wire& gw, const tile& at) const noexcept;
+    std::optional<gate_or_wire> is_in_data_flow(const gate_or_wire& gw, const tile& at) const noexcept;
     /**
      * Generic version of the proxies above that only returns true iff there is any data flow from given tile t1 to
      * given tile t2.
@@ -717,6 +730,12 @@ public:
      * @return The associated network's stored file path name.
      */
     std::string get_name() const noexcept;
+    /**
+     * Returns the associated logic network.
+     *
+     * @return the associated logic network
+     */
+    logic_network_ptr get_network() const noexcept;
     /**
      * Represents a bounding box surrounding the elements assigned to the layout's tiles. Helps to determine the "real"
      * size of a layout.

@@ -4,57 +4,64 @@
 
 #include "logic_network.h"
 
+
+logic_network::logic_network() noexcept
+        :
+        bidirectional_graph(),
+        strg{std::make_shared<logic_network_storage>("", OP_COUNT)}
+{
+    strg->zero = std::make_unique<vertex>(create_logic_vertex(operation::ZERO));
+    strg->one  = std::make_unique<vertex>(create_logic_vertex(operation::ONE));
+}
+
 logic_network::logic_network(std::string&& name) noexcept
         :
         bidirectional_graph(),
-        name(std::move(name)),
-        operation_counter(OP_COUNT, 0ul)
+        strg{std::make_shared<logic_network_storage>(std::move(name), OP_COUNT)}
 {
-    zero = std::make_unique<vertex>(create_logic_vertex(operation::ZERO));
-    one  = std::make_unique<vertex>(create_logic_vertex(operation::ONE));
+    strg->zero = std::make_unique<vertex>(create_logic_vertex(operation::ZERO));
+    strg->one  = std::make_unique<vertex>(create_logic_vertex(operation::ONE));
 }
+
+logic_network::logic_network(storage&& strg) noexcept
+        :
+        bidirectional_graph(),
+        strg{std::move(strg)}
+{}
 
 logic_network::logic_network(const logic_network& ln) noexcept
         :
         bidirectional_graph(ln),
-        name{ln.name},
-        pi_set{ln.pi_set},
-        po_set{ln.po_set},
-        io_port_map{ln.io_port_map},
-        operation_counter{ln.operation_counter}
-{
-    zero = std::make_unique<vertex>(vertex(0));
-    one  = std::make_unique<vertex>(vertex(1));
-}
+        strg{ln.strg}
+{}
 
 logic_network::logic_network(logic_network&& ln) noexcept
         :
-        bidirectional_graph(std::move(ln)),
-        name{std::move(ln.name)},
-        pi_set{std::move(ln.pi_set)},
-        po_set{std::move(ln.po_set)},
-        io_port_map{std::move(ln.io_port_map)},
-        operation_counter{std::move(ln.operation_counter)},
-        zero{std::move(ln.zero)},
-        one{std::move(ln.one)}
+        bidirectional_graph(ln),
+        strg{std::move(ln.strg)}
 {}
 
 logic_network::num_vertices_t logic_network::vertex_count(const bool ios, const bool consts) const noexcept
 {
     auto count = get_vertex_count();
     if (!ios)
-        count -= (pi_count() + po_count());
+        count -= (num_pis() + num_pos());
     if (!consts)
         count -= 2;
 
     return count;
 }
 
+std::size_t logic_network::size() const noexcept
+{
+    return vertex_count(true, true);
+}
+
 logic_network::num_edges_t logic_network::edge_count(const bool ios, const bool consts) const noexcept
 {
     auto count = get_edge_count();
     if (!ios)
-        count -= (pi_count() + po_count());
+        count -= (num_pis() + num_pos());
     if (!consts)
         count -= const_count();
 
@@ -76,7 +83,9 @@ logic_network::degree_t logic_network::in_degree(const vertex v, const bool ios,
 logic_network::vertex logic_network::create_logic_vertex(const operation o) noexcept
 {
     increment_op_counter(o);
-    return add_vertex(o);
+    auto v = add_vertex(o);
+    strg->v_map[v] = 0;
+    return v;
 }
 
 void logic_network::remove_logic_vertex(const vertex v) noexcept
@@ -88,8 +97,8 @@ void logic_network::remove_logic_vertex(const vertex v) noexcept
 logic_network::vertex logic_network::create_pi(const std::string& name) noexcept
 {
     auto v = create_logic_vertex(operation::PI);
-    pi_set.emplace(v);
-    io_port_map.insert(port_map::value_type(v, name));
+    strg->pi_set.emplace(v);
+    strg->io_port_map.insert(logic_network_storage::port_map::value_type(v, name));
 
     return v;
 }
@@ -98,13 +107,21 @@ void logic_network::create_po(const vertex a, const std::string& name) noexcept
 {
     auto v = create_logic_vertex(operation::PO);
     add_edge(a, v);
-    po_set.emplace(v);
-    io_port_map.insert(port_map::value_type(v, name));
+    strg->po_set.emplace(v);
+    strg->io_port_map.insert(logic_network_storage::port_map::value_type(v, name));
+}
+
+logic_network::vertex logic_network::create_po(const std::string& name) noexcept
+{
+    auto v = add_vertex(operation::PO);
+    strg->po_set.emplace(v);
+    strg->io_port_map.insert(logic_network_storage::port_map::value_type(v, name));
+    return v;
 }
 
 logic_network::vertex logic_network::get_constant(bool value) const noexcept
 {
-    return value ? *one : *zero;
+    return value ? *strg->one : *strg->zero;
 }
 
 logic_network::vertex logic_network::create_buf(const vertex a) noexcept
@@ -128,11 +145,25 @@ logic_network::vertex logic_network::create_not(const vertex a) noexcept
     return v;
 }
 
+logic_network::vertex logic_network::create_not() noexcept
+{
+    auto v = add_vertex(operation::NOT);
+
+    return v;
+}
+
 logic_network::vertex logic_network::create_and(const vertex a, const vertex b) noexcept
 {
     auto v = create_logic_vertex(operation::AND);
     add_edge(a, v);
     add_edge(b, v);
+
+    return v;
+}
+
+logic_network::vertex logic_network::create_and() noexcept
+{
+    auto v = add_vertex(operation::AND);
 
     return v;
 }
@@ -146,11 +177,37 @@ logic_network::vertex logic_network::create_or(const vertex a, const vertex b) n
     return v;
 }
 
+
+logic_network::vertex logic_network::create_or() noexcept
+{
+    auto v = add_vertex(operation::OR);
+	return v;
+}
+    
+logic_network::vertex logic_network::create_nary_or(const std::vector<vertex>& fs) noexcept
+{
+    if (fs.empty())
+        return *strg->zero;
+
+    auto v = create_logic_vertex(operation::OR);
+    for (const auto& s : fs)
+        add_edge(s, v);
+
+    return v;
+}
+
 logic_network::vertex logic_network::create_xor(const vertex a, const vertex b) noexcept
 {
     auto v = create_logic_vertex(operation::XOR);
     add_edge(a, v);
     add_edge(b, v);
+
+    return v;
+}
+
+logic_network::vertex logic_network::create_xor() noexcept
+{
+    auto v = add_vertex(operation::XOR);
 
     return v;
 }
@@ -163,6 +220,65 @@ logic_network::vertex logic_network::create_maj(const vertex a, const vertex b, 
     add_edge(c, v);
 
     return v;
+}
+
+logic_network::vertex logic_network::create_maj() noexcept
+{
+    auto v = add_vertex(operation::MAJ);
+
+    return v;
+}
+
+logic_network::vertex logic_network::create_f1o2() noexcept
+{
+    auto v = add_vertex(operation::F1O2);
+
+    return v;
+}
+
+logic_network::vertex logic_network::create_f1o3() noexcept
+{
+    auto v = add_vertex(operation::F1O3);
+
+    return v;
+}
+
+logic_network::node logic_network::get_node(signal const& f) const noexcept
+{
+    return static_cast<node>(f);
+}
+
+logic_network::signal logic_network::clone_node(const base_type& other, const node& source, const std::vector<signal>& fanin) noexcept
+{
+    auto v = create_logic_vertex(other.get_op(source));
+    for (const auto& s : fanin)
+        add_edge(s, v);
+
+    return static_cast<signal>(v);
+}
+
+void logic_network::clear_values() const
+{
+    for(auto&& i : strg->v_map)
+        i.second = 0;
+}
+
+std::size_t logic_network::value(node const& n) const
+{
+    try {
+        return strg->v_map.at(n);
+    }
+    catch (...)
+    {
+        strg->v_map[n] = 0;
+        return 0;
+    }
+
+}
+
+void logic_network::set_value(node const& n, std::size_t value) const
+{
+    strg->v_map[n] = value;
 }
 
 logic_network::vertex logic_network::create_balance_vertex(const edge& e) noexcept
@@ -189,7 +305,7 @@ operation logic_network::get_op(const vertex v) const noexcept
 
 bool logic_network::is_pi(const vertex v) const noexcept
 {
-    return pi_set.count(v) > 0u;
+    return strg->pi_set.count(v) > 0u;
 }
 
 bool logic_network::pre_pi(const vertex v) const noexcept
@@ -200,7 +316,7 @@ bool logic_network::pre_pi(const vertex v) const noexcept
 
 bool logic_network::is_po(const vertex v) const noexcept
 {
-    return po_set.count(v) > 0u;
+    return strg->po_set.count(v) > 0u;
 }
 
 bool logic_network::post_po(const vertex v) const noexcept
@@ -214,19 +330,25 @@ bool logic_network::is_io(const vertex v) const noexcept
     return get_op(v) == operation::PI || get_op(v) == operation::PO;
 }
 
-bool logic_network::is_const(const vertex v) const noexcept
+bool logic_network::is_constant(const node& n) const noexcept
 {
-    return get_op(v) == operation::ONE || get_op(v) == operation::ZERO;
+    return get_op(n) == operation::ONE || get_op(n) == operation::ZERO;
+}
+
+bool logic_network::is_complemented(const signal& f) const noexcept
+{
+    (void)f;
+    return false;
 }
 
 std::size_t logic_network::operation_count(const operation o) const noexcept
 {
-    return operation_counter[o];
+    return strg->operation_counter[o];
 }
 
 bool logic_network::is_MIG() const noexcept
 {
-    for (auto&& oc : iter::range(operation_counter.size()))
+    for (auto&& oc : iter::range(strg->operation_counter.size()))
     {
         switch (oc)
         {
@@ -243,7 +365,7 @@ bool logic_network::is_MIG() const noexcept
                 continue;
             default:
             {
-                if (operation_counter[oc] != 0lu)
+                if (strg->operation_counter[oc] != 0lu)
                     return false;
             }
         }
@@ -254,7 +376,7 @@ bool logic_network::is_MIG() const noexcept
 
 bool logic_network::is_AIG() const noexcept
 {
-    for (auto&& oc : iter::range(operation_counter.size()))
+    for (auto&& oc : iter::range(strg->operation_counter.size()))
     {
         switch (oc)
         {
@@ -271,7 +393,7 @@ bool logic_network::is_AIG() const noexcept
                 continue;
             default:
             {
-                if (operation_counter[oc] != 0lu)
+                if (strg->operation_counter[oc] != 0lu)
                     return false;
             }
         }
@@ -282,7 +404,7 @@ bool logic_network::is_AIG() const noexcept
 
 bool logic_network::is_OIG() const noexcept
 {
-    for (auto&& oc : iter::range(operation_counter.size()))
+    for (auto&& oc : iter::range(strg->operation_counter.size()))
     {
         switch (oc)
         {
@@ -299,7 +421,7 @@ bool logic_network::is_OIG() const noexcept
                 continue;
             default:
             {
-                if (operation_counter[oc] != 0lu)
+                if (strg->operation_counter[oc] != 0lu)
                     return false;
             }
         }
@@ -310,7 +432,7 @@ bool logic_network::is_OIG() const noexcept
 
 bool logic_network::is_AOIG() const noexcept
 {
-    for (auto&& oc : iter::range(operation_counter.size()))
+    for (auto&& oc : iter::range(strg->operation_counter.size()))
     {
         switch (oc)
         {
@@ -328,7 +450,7 @@ bool logic_network::is_AOIG() const noexcept
                 continue;
             default:
             {
-                if (operation_counter[oc] != 0lu)
+                if (strg->operation_counter[oc] != 0lu)
                     return false;
             }
         }
@@ -339,7 +461,7 @@ bool logic_network::is_AOIG() const noexcept
 
 bool logic_network::is_MAOIG() const noexcept
 {
-    for (auto&& oc : iter::range(operation_counter.size()))
+    for (auto&& oc : iter::range(strg->operation_counter.size()))
     {
         switch (oc)
         {
@@ -358,7 +480,7 @@ bool logic_network::is_MAOIG() const noexcept
                 continue;
             default:
             {
-                if (operation_counter[oc] != 0lu)
+                if (strg->operation_counter[oc] != 0lu)
                     return false;
             }
         }
@@ -371,7 +493,7 @@ std::string logic_network::get_port_name(const vertex v) const noexcept
 {
     try
     {
-        return io_port_map.left.at(v);
+        return strg->io_port_map.left.at(v);
     }
     catch (const std::out_of_range&)
     {
@@ -381,7 +503,7 @@ std::string logic_network::get_port_name(const vertex v) const noexcept
 
 std::string logic_network::get_name() const noexcept
 {
-    return name;
+    return strg->name;
 }
 
 std::vector<logic_network::edge_path> logic_network::get_all_paths(const vertex v, const bool ios, const bool consts) noexcept
@@ -501,10 +623,10 @@ void logic_network::write_network(std::ostream& os) noexcept
     graph << "digraph G {\n";
 
     for (auto&& v : vertices(true, true))
-        graph << boost::str(boost::format("%d [label=<<B>%d</B><br/>%s>];\n") % v % v % name_str(get_op(v)));
+        graph << fmt::format("{} [label=<<B>{}</B><br/>{}>];\n", v, v, name_str(get_op(v)));
 
     for (auto&& e : edges(true, true))
-        graph << boost::str(boost::format("%d->%d;\n") % source(e) % target(e));
+        graph << fmt::format("{}->{};\n", source(e), target(e));
 
     graph << "}\n";
 
@@ -513,10 +635,10 @@ void logic_network::write_network(std::ostream& os) noexcept
 
 void logic_network::increment_op_counter(const operation o) noexcept
 {
-    ++operation_counter[o];
+    ++strg->operation_counter[o];
 }
 
 void logic_network::decrement_op_counter(const operation o) noexcept
 {
-    --operation_counter[o];
+    --strg->operation_counter[o];
 }

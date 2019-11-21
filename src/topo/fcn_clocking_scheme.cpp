@@ -25,27 +25,31 @@ fcn_clocking_scheme::fcn_clocking_scheme(std::string&& name, fcn_clock::cutout&&
         cutout_x(cutout_y ? scheme[0].size() : 0)
 {}
 
-boost::optional<fcn_clocking_scheme> get_clocking_scheme(const std::string& name)
+std::optional<fcn_clocking_scheme> get_clocking_scheme(const std::string& name)
 {
     static const std::unordered_map<std::string, fcn_clocking_scheme> scheme_lookup
-    {{
-        { "OPEN3", open_3_clocking },
-        { "OPEN4", open_4_clocking },
-        { "2DDWAVE3", twoddwave_3_clocking },
-        { "DIAG3", twoddwave_3_clocking },
-        { "2DDWAVE4", twoddwave_4_clocking },
-        { "DIAG4", twoddwave_4_clocking },
-        { "USE", use_4_clocking },
-        { "RES", res_4_clocking },
-        { "BANCS", bancs_3_clocking },
-    }};
+            {{
+                     {"OPEN3", open_3_clocking},
+                     {"OPEN4", open_4_clocking},
+                     {"2DDWAVE3", twoddwave_3_clocking},
+                     {"DIAG3", twoddwave_3_clocking},
+                     {"2DDWAVE4", twoddwave_4_clocking},
+                     {"DIAG4", twoddwave_4_clocking},
+                     {"USE", use_4_clocking},
+                     {"RES", res_4_clocking},
+                     {"BANCS", bancs_3_clocking},
+             }};
 
-    try
-    {
+    try {
         return scheme_lookup.at(boost::to_upper_copy(name));
     }
     catch (...)
     {
-        return boost::none;
+        return std::nullopt;
     }
+}
+
+bool fcn_clocking_scheme::operator==(fcn_clocking_scheme &rhs)
+{
+    return this->num_clocks == rhs.num_clocks && this->regular == rhs.regular && this->scheme == rhs.scheme;
 }

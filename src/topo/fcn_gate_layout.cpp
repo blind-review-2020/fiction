@@ -35,6 +35,11 @@ fcn_gate_layout::fcn_gate_layout(logic_network_ptr ln) noexcept
         network(std::move(ln))
 {}
 
+fcn_clocking_scheme fcn_gate_layout::get_clocking_scheme()
+{
+    return clocking;
+}
+
 bool fcn_gate_layout::is_border_tile(const tile& t) const noexcept
 {
     auto surrounding = surrounding_2d(t);
@@ -73,7 +78,7 @@ layout::directions fcn_gate_layout::closest_border(const tile& t) const noexcept
     }
 }
 
-boost::optional<fcn_clock::zone> fcn_gate_layout::tile_clocking(const tile& t) const noexcept
+std::optional<fcn_clock::zone> fcn_gate_layout::tile_clocking(const tile& t) const noexcept
 {
     if (clocking.regular)
     {
@@ -88,12 +93,12 @@ boost::optional<fcn_clock::zone> fcn_gate_layout::tile_clocking(const tile& t) c
         }
         catch (const std::out_of_range&)
         {
-            return boost::none;
+            return std::nullopt;
         }
     }
 }
 
-boost::optional<fcn_clock::zone> fcn_gate_layout::tile_clocking(const tile_index t) const noexcept
+std::optional<fcn_clock::zone> fcn_gate_layout::tile_clocking(const tile_index t) const noexcept
 {
     return tile_clocking(get_vertex(t));
 }
@@ -124,7 +129,7 @@ void fcn_gate_layout::dissociate_logic_vertex(const tile& t) noexcept
     out_dir_map.erase(t);
 }
 
-boost::optional<logic_network::vertex> fcn_gate_layout::get_logic_vertex(const tile& t) const noexcept
+std::optional<logic_network::vertex> fcn_gate_layout::get_logic_vertex(const tile& t) const noexcept
 {
     try
     {
@@ -132,7 +137,7 @@ boost::optional<logic_network::vertex> fcn_gate_layout::get_logic_vertex(const t
     }
     catch (const std::out_of_range&)
     {
-        return boost::none;
+        return std::nullopt;
     }
 }
 
@@ -161,7 +166,7 @@ bool fcn_gate_layout::has_logic_vertex(const tile& t, const logic_network::verte
     }
 }
 
-boost::optional<fcn_gate_layout::tile> fcn_gate_layout::get_logic_tile(const logic_network::vertex v) const noexcept
+std::optional<fcn_gate_layout::tile> fcn_gate_layout::get_logic_tile(const logic_network::vertex v) const noexcept
 {
     try
     {
@@ -169,7 +174,7 @@ boost::optional<fcn_gate_layout::tile> fcn_gate_layout::get_logic_tile(const log
     }
     catch (const std::out_of_range&)
     {
-        return boost::none;
+        return std::nullopt;
     }
 }
 
@@ -272,10 +277,10 @@ bool fcn_gate_layout::is_free_tile(const tile& t) const noexcept
     return !is_gate_tile(t) && !is_wire_tile(t);
 }
 
-boost::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_data_flow(const gate_or_wire& gw, const tile& at, const bool out) const noexcept
+std::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_data_flow(const gate_or_wire& gw, const tile& at, const bool out) const noexcept
 {
     // if a gate was passed as gw
-    if (auto v1 = boost::get<logic_network::vertex>(&gw))
+    if (auto v1 = std::get_if<logic_network::vertex>(&gw))
     {
         // if at is a gate as well
         if (auto v2 = get_logic_vertex(at))
@@ -293,7 +298,7 @@ boost::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_data_flow(con
         }
     }
     // if a wire was passed as gw
-    if (auto e1 = boost::get<logic_network::edge>(&gw))
+    if (auto e1 = std::get_if<logic_network::edge>(&gw))
     {
         // if v2 is a gate tile
         if (auto v2 = get_logic_vertex(at))
@@ -308,15 +313,15 @@ boost::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_data_flow(con
     }
 
     // no information flow from t1 to at or non-matching arguments
-    return boost::none;
+    return std::nullopt;
 }
 
-boost::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_out_data_flow(const gate_or_wire& gw, const tile& at) const noexcept
+std::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_out_data_flow(const gate_or_wire& gw, const tile& at) const noexcept
 {
     return is_data_flow(gw, at, true);
 }
 
-boost::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_in_data_flow(const gate_or_wire& gw, const tile& at) const noexcept
+std::optional<fcn_gate_layout::gate_or_wire> fcn_gate_layout::is_in_data_flow(const gate_or_wire& gw, const tile& at) const noexcept
 {
     return is_data_flow(gw, at, false);
 }
@@ -339,9 +344,9 @@ bool fcn_gate_layout::is_data_flow(const tile& t1, const tile& t2) const noexcep
     return false;
 }
 
-std::vector<std::pair<fcn_gate_layout::tile, fcn_gate_layout::gate_or_wire>> fcn_gate_layout::outgoing_data_flow(const tile& t, const gate_or_wire& gw) const noexcept
+std::vector<fcn_gate_layout::tile_assignment> fcn_gate_layout::outgoing_data_flow(const tile& t, const gate_or_wire& gw) const noexcept
 {
-    std::vector<std::pair<tile, gate_or_wire>> odf{}; // outgoing data flow
+    std::vector<tile_assignment> odf{}; // outgoing data flow
 
     // for all outgoing clocked tiles
     for (auto&& oct : outgoing_clocked_tiles(t))
@@ -379,9 +384,9 @@ std::vector<fcn_gate_layout::tile> fcn_gate_layout::outgoing_data_flow(const til
     return odf;
 }
 
-std::vector<std::pair<fcn_gate_layout::tile, fcn_gate_layout::gate_or_wire>> fcn_gate_layout::incoming_data_flow(const tile& t, const gate_or_wire& gw) const noexcept
+std::vector<fcn_gate_layout::tile_assignment> fcn_gate_layout::incoming_data_flow(const tile& t, const gate_or_wire& gw) const noexcept
 {
-    std::vector<std::pair<tile, gate_or_wire>> idf{}; // incoming data flow
+    std::vector<tile_assignment> idf{}; // incoming data flow
 
     // for all incoming clocked tiles
     for (auto&& ict : incoming_clocked_tiles(t))
@@ -443,8 +448,7 @@ fcn_gate_layout::path_info fcn_gate_layout::signal_delay(const tile& t, const ga
     if (is_free_tile(t))
         return {};
 
-    auto idf = incoming_data_flow(t, gw);
-    if (idf.empty())
+    if (auto idf = incoming_data_flow(t, gw); idf.empty())
         return {1, *tile_clocking(t), 0};
     else if (dc.count(t))  // cache hit
         return dc.at(t);
@@ -452,8 +456,8 @@ fcn_gate_layout::path_info fcn_gate_layout::signal_delay(const tile& t, const ga
     {
         // fetch information about all incoming paths
         std::vector<path_info> infos{};
-        for (const auto& cur_t : idf)
-            infos.push_back(signal_delay(cur_t.first, cur_t.second, dc));
+        for (const auto& [_t, _gw] : idf)
+            infos.push_back(signal_delay(_t, _gw, dc));
 
         path_info dominant_path{};
 
@@ -762,6 +766,11 @@ std::string fcn_gate_layout::get_name() const noexcept
     return network->get_name();
 }
 
+logic_network_ptr fcn_gate_layout::get_network() const noexcept
+{
+    return network;
+}
+
 fcn_gate_layout::bounding_box fcn_gate_layout::determine_bounding_box() const noexcept
 {
     // calculate min_x
@@ -869,9 +878,9 @@ fcn_gate_layout::energy_info fcn_gate_layout::calculate_energy() const noexcept
     // counting gates
     auto num_inv_s = 0u, num_inv_b = 0u, num_and = 0u, num_or = 0u, num_maj = 0u, num_fan_out = 0u;
 
-    for (auto&& tv : v_map.left)
+    for (auto&& [t, v] : v_map.left)
     {
-        auto t = tv.first;
+        (void)v;  // fix compiler warning
         switch (get_op(t))
         {
             case operation::NOT:

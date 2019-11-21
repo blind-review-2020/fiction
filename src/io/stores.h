@@ -9,7 +9,8 @@
 #include "fcn_gate_layout.h"
 #include "fcn_cell_layout.h"
 #include "svg_writer.h"
-#include <boost/format.hpp>
+#include "fmt/format.h"
+#include "fmt/ostream.h"
 #include <alice/alice.hpp>
 
 namespace alice
@@ -26,15 +27,14 @@ namespace alice
 
     ALICE_DESCRIBE_STORE(logic_network_ptr, ln)
     {
-        return boost::str(boost::format("%s - I/O: %d/%d, #V: %d")
-                          % ln->get_name() % ln->pi_count() % ln->po_count() % ln->vertex_count());
+        return fmt::format("{} - I/O: {}/{}, #V: {}", ln->get_name(), ln->num_pis(),
+                           ln->num_pos(), ln->vertex_count());
     }
 
     ALICE_PRINT_STORE_STATISTICS(logic_network_ptr, os, ln)
     {
-        os << boost::str(boost::format("%s - I/O: %d/%d, #V: %d")
-                         % ln->get_name() % ln->pi_count()
-                         % ln->po_count() % ln->vertex_count()) << std::endl;
+        os << fmt::format("{} - I/O: {}/{}, #V: {}", ln->get_name(), ln->num_pis(),
+                          ln->num_pos(), ln->vertex_count()) << std::endl;
     }
 
     ALICE_LOG_STORE_STATISTICS(logic_network_ptr, ln)
@@ -42,8 +42,8 @@ namespace alice
         return nlohmann::json
         {
             {"name", ln->get_name()},
-            {"inputs", ln->pi_count()},
-            {"outputs", ln->po_count()},
+            {"inputs", ln->num_pis()},
+            {"outputs", ln->num_pos()},
             {"vertices", ln->vertex_count()}
         };
     }
@@ -61,28 +61,26 @@ namespace alice
 
     ALICE_DESCRIBE_STORE(fcn_gate_layout_ptr, layout)
     {
-        return boost::str(boost::format("%s - %d × %d") % layout->get_name() % layout->x() % layout->y());
+        return fmt::format("{} - {} × {}", layout->get_name(), layout->x(), layout->y());
     }
 
     ALICE_PRINT_STORE_STATISTICS(fcn_gate_layout_ptr, os, layout)
     {
-        auto cp_tp = layout->critical_path_length_and_throughput();
-        os << boost::str(boost::format("%s - %d × %d, #G: %d, #W: %d, #C: %d, #L: %d, CP: %d, TP: 1/%d")
-                         % layout->get_name() % layout->x() % layout->y()
-                         % layout->gate_count() % layout->wire_count()
-                         % layout->crossing_count() % layout->latch_count()
-                         % cp_tp.first % cp_tp.second) << std::endl;
+        auto [cp, tp] = layout->critical_path_length_and_throughput();
+        os << fmt::format("{} - {} × {}, #G: {}, #W: {}, #C: {}, #L: {}, CP: {}, TP: 1/{}", layout->get_name(),
+                          layout->x(), layout->y(), layout->gate_count(), layout->wire_count(),
+                          layout->crossing_count(), layout->latch_count(), cp, tp) << std::endl;
     }
 
     ALICE_LOG_STORE_STATISTICS(fcn_gate_layout_ptr, layout)
     {
         auto area = layout->x() * layout->y();
         auto bb = layout->determine_bounding_box();
-        auto energy = layout->calculate_energy();
+        auto [slow, fast] = layout->calculate_energy();
         auto gate_tiles = layout->gate_count();
         auto wire_tiles = layout->wire_count();
         auto crossings  = layout->crossing_count();
-        auto cp_tp = layout->critical_path_length_and_throughput();
+        auto [cp, tp] = layout->critical_path_length_and_throughput();
 
         return nlohmann::json
         {
@@ -106,12 +104,12 @@ namespace alice
             {"free tiles", area - (gate_tiles + wire_tiles - crossings)},  // free tiles in ground layer
             {"crossings", crossings},
             {"latches", layout->latch_count()},
-            {"critical path", cp_tp.first},
-            {"throughput", "1/" + std::to_string(cp_tp.second)},
+            {"critical path", cp},
+            {"throughput", "1/" + std::to_string(tp)},
             {"energy (meV, QCA)",
              {
-                {"slow (25 GHz)", energy.first},
-                {"fast (100 GHz)", energy.second}
+                {"slow (25 GHz)", slow},
+                {"fast (100 GHz)", fast}
              }
             }
         };
@@ -130,15 +128,13 @@ namespace alice
 
     ALICE_DESCRIBE_STORE(fcn_cell_layout_ptr, layout)
     {
-        return boost::str(boost::format("%s (%s) - %d × %d")
-                          % layout->get_name() % layout->get_technology() % layout->x() % layout->y());
+        return fmt::format("{} ({}) - {} × {}", layout->get_name(), layout->get_technology(), layout->x(), layout->y());
     }
 
     ALICE_PRINT_STORE_STATISTICS(fcn_cell_layout_ptr, os, layout)
     {
-        os << boost::str(boost::format("%s (%s) - %d × %d, #Cells: %d")
-                         % layout->get_name() % fcn::to_string(layout->get_technology()) % layout->x()
-                         % layout->y() % layout->cell_count()) << std::endl;
+        os << fmt::format("{} ({}) - {} × {}, #Cells: {}", layout->get_name(), fcn::to_string(layout->get_technology()),
+                          layout->x(), layout->y(), layout->cell_count()) << std::endl;
     }
 
     ALICE_LOG_STORE_STATISTICS(fcn_cell_layout_ptr, layout)

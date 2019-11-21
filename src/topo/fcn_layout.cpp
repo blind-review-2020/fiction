@@ -169,10 +169,10 @@ fcn_layout::latch_delay fcn_layout::get_latch(const face& f) const noexcept
 std::vector<std::string> fcn_layout::latch_str_reprs() const noexcept
 {
     std::vector<std::string> reprs{};
-    for (const auto& l : l_map)
+    for (const auto& [t, l] : l_map)
     {
         std::stringstream ss{};
-        ss << "l@" << l.first << "=" << l.second;
+        ss << "l@" << t << "=" << l;
         reprs.push_back(ss.str());
     }
 

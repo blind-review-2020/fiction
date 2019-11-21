@@ -93,7 +93,7 @@ void exact_pr::initialize_tv_map()
         for (auto&& v : network->vertices(config.io_ports))
         {
             const auto v_i = network->index(v);
-            z3_expr_proxy ep{ctx.bool_const(boost::str(boost::format("tv_%d_%d") % t_i % v_i).c_str())};
+            z3_expr_proxy ep{ctx.bool_const(fmt::format("tv_{}_{}", t_i, v_i).c_str())};
             tv_map.emplace(std::make_pair(t_i, v_i), ep);
         }
     }
@@ -107,7 +107,7 @@ void exact_pr::initialize_te_map()
         for (auto&& e : network->edges(config.io_ports))
         {
             const auto src = network->index(network->source(e)), tgt = network->index(network->target(e));
-            z3_expr_proxy ep{ctx.bool_const(boost::str(boost::format("te_%d_(%d,%d)") % t_i % src % tgt).c_str())};
+            z3_expr_proxy ep{ctx.bool_const(fmt::format("te_{}_({},{})", t_i, src, tgt).c_str())};
             te_map.emplace(std::make_pair(t_i, std::make_pair(src, tgt)), ep);
         }
     }
@@ -117,13 +117,12 @@ void exact_pr::initialize_tc_map()
 {
     for (auto&& t1 : layout->ground_layer())
     {
-        const auto t1_i = layout->index(t1);
-        if (layout->is_regularly_clocked())
+        if (const auto t1_i = layout->index(t1); layout->is_regularly_clocked())
         {
             for (auto&& t2 : layout->outgoing_clocked_tiles(t1))
             {
                 const auto t2_i = layout->index(t2);
-                z3_expr_proxy ep{ctx.bool_const(boost::str(boost::format("tc_%d_%d") % t1_i % t2_i).c_str())};
+                z3_expr_proxy ep{ctx.bool_const(fmt::format("tc_{}_{}", t1_i, t2_i).c_str())};
                 tc_map.emplace(std::make_pair(t1_i, t2_i), ep);
             }
         }
@@ -132,7 +131,7 @@ void exact_pr::initialize_tc_map()
             for (auto&& t2 : layout->surrounding_2d(t1))
             {
                 const auto t2_i = layout->index(t2);
-                z3_expr_proxy ep{ctx.bool_const(boost::str(boost::format("tc_%d_%d") % t1_i % t2_i).c_str())};
+                z3_expr_proxy ep{ctx.bool_const(fmt::format("tc_{}_{}", t1_i, t2_i).c_str())};
                 tc_map.emplace(std::make_pair(t1_i, t2_i), ep);
             }
         }
@@ -147,7 +146,7 @@ void exact_pr::initialize_tp_map()
         for (auto&& t2 : layout->ground_layer())
         {
             const auto t2_i = layout->index(t2);
-            z3_expr_proxy v{ctx.bool_const(boost::str(boost::format("tp_%d_%d") % t1_i % t2_i).c_str())};
+            z3_expr_proxy v{ctx.bool_const(fmt::format("tp_{}_{}", t1_i, t2_i).c_str())};
             tp_map.emplace(std::make_pair(t1_i, t2_i), v);
         }
     }
@@ -158,7 +157,7 @@ void exact_pr::initialize_vcl_map()
     auto initialize = [this](const logic_vertex _v) -> void
     {
         const auto v_i = network->index(_v);
-        z3_expr_proxy ep{ctx.real_const(boost::str(boost::format("vcl_%d") % v_i).c_str())};
+        z3_expr_proxy ep{ctx.real_const(fmt::format("vcl_{}", v_i).c_str())};
         vcl_map.emplace(v_i, ep);
     };
 
@@ -182,7 +181,7 @@ void exact_pr::initialize_tcl_map()
     for (auto&& t : layout->ground_layer())
     {
         const auto t_i = layout->index(t);
-        z3_expr_proxy ep{ctx.real_const(boost::str(boost::format("tcl_%d") % t_i).c_str())};
+        z3_expr_proxy ep{ctx.real_const(fmt::format("tcl_{}", t_i).c_str())};
         tcl_map.emplace(t_i, ep);
     }
 }
@@ -192,7 +191,7 @@ void exact_pr::initialize_tl_map()
     for (auto&& t : layout->ground_layer())
     {
         const auto t_i = layout->index(t);
-        z3_expr_proxy ep{ctx.int_const(boost::str(boost::format("tl_%d") % t_i).c_str())};
+        z3_expr_proxy ep{ctx.int_const(fmt::format("tl_{}", t_i).c_str())};
         tl_map.emplace(t_i, ep);
     }
 }
@@ -350,15 +349,14 @@ void exact_pr::define_adjacent_vertex_tiles()
         {
             auto co = get_tv(t, v);
             z3::expr_vector conj{ctx};
-            for (auto&& av : network->adjacent_vertices(v, config.io_ports))
+            for (auto&& ae : network->out_edges(v, config.io_ports))
             {
-                auto ev = network->get_edge(v, av).get();
                 z3::expr_vector disj{ctx};
 
-                if (layout->is_regularly_clocked())
+                if (auto tgt = network->target(ae); layout->is_regularly_clocked())
                 {
                     for (auto&& at : layout->outgoing_clocked_tiles(t))
-                        disj.push_back((get_tv(at, av) or get_te(at, ev)) and get_tc(t, at));
+                        disj.push_back((get_tv(at, tgt) or get_te(at, ae)) and get_tc(t, at));
                 }
                 else  // irregular clocking
                 {
@@ -366,7 +364,7 @@ void exact_pr::define_adjacent_vertex_tiles()
                     {
                         // clocks must differ by 1
                         auto mod = z3::mod(get_tcl(at) - get_tcl(t), layout->num_clocks()) == ctx.real_val(1);
-                        disj.push_back(((get_tv(at, av) or get_te(at, ev)) and mod) and get_tc(t, at));
+                        disj.push_back(((get_tv(at, tgt) or get_te(at, ae)) and mod) and get_tc(t, at));
                     }
                 }
 
@@ -387,15 +385,14 @@ void exact_pr::define_inv_adjacent_vertex_tiles()
         {
             auto co = get_tv(t, v);
             z3::expr_vector conj{ctx};
-            for (auto&& iav : network->inv_adjacent_vertices(v, config.io_ports))
+            for (auto&& iae : network->in_edges(v, config.io_ports))
             {
-                auto iev = network->get_edge(iav, v).get();
                 z3::expr_vector disj{ctx};
 
-                if (layout->is_regularly_clocked())
+                if (auto src = network->source(iae); layout->is_regularly_clocked())
                 {
                     for (auto&& iat : layout->incoming_clocked_tiles(t))
-                        disj.push_back((get_tv(iat, iav) or get_te(iat, iev)) and get_tc(iat, t));
+                        disj.push_back((get_tv(iat, src) or get_te(iat, iae)) and get_tc(iat, t));
                 }
                 else  // irregular clocking
                 {
@@ -403,7 +400,7 @@ void exact_pr::define_inv_adjacent_vertex_tiles()
                     {
                         // clocks must differ by 1
                         auto mod = z3::mod(get_tcl(t) - get_tcl(iat), layout->num_clocks()) == ctx.real_val(1);
-                        disj.push_back(((get_tv(iat, iav) or get_te(iat, iev)) and mod) and get_tc(iat, t));
+                        disj.push_back(((get_tv(iat, src) or get_te(iat, iae)) and mod) and get_tc(iat, t));
                     }
                 }
 
@@ -568,15 +565,13 @@ void exact_pr::fanin_length()
 
             // respect number of vertices as an offset to path length
             // this works because every vertex must be placed
-            auto offset = static_cast<int>(p.size() - max_length);
-            if (offset)
+            if (auto offset = static_cast<int>(p.size() - max_length); offset)
                 path_length.push_back(ctx.real_val(offset));
 
             for (auto& e : p)
             {
                 // respect clock zone of PI if one is involved
-                auto s = network->source(e);
-                if (config.io_ports && network->is_pi(s))
+                if (auto s = network->source(e); config.io_ports && network->is_pi(s))
                     path_length.push_back(get_vcl(s));
                 else if (!config.io_ports)
                 {

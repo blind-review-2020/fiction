@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <chrono>
+#include <optional>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -21,7 +22,6 @@
 #include <boost/graph/gursoy_atun_layout.hpp>
 #include <boost/graph/boyer_myrvold_planar_test.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <boost/optional.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/random/linear_congruential.hpp>
 
@@ -54,7 +54,7 @@ class bidirectional_graph
      * iterators both in and against propagational direction.
      */
     using graph_container = boost::adjacency_list<
-            boost::vecS,           // edge container
+            boost::setS,           // edge container
             boost::vecS,           // vertex container
             boost::bidirectionalS, // bi-directional graph
             boost::property<vertex_properties_t, VERTEX_PROPERTIES>,
@@ -307,13 +307,13 @@ public:
      * @param v2 Target vertex.
      * @return Optional containing edge from v1 to v2.
      */
-    boost::optional<edge_t> get_edge(const vertex_t v1, const vertex_t v2) const noexcept
+    std::optional<edge_t> get_edge(const vertex_t v1, const vertex_t v2) const noexcept
     {
-        auto e = boost::edge(v1, v2, graph);
-        if (!e.second)
-            return boost::none;
+        auto [e, b] = boost::edge(v1, v2, graph);
+        if (!b)
+            return std::nullopt;
 
-        return e.first;
+        return e;
     }
     /**
      * Returns a range containing the outgoing edges of the given vertex.

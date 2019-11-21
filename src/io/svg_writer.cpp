@@ -150,16 +150,15 @@ namespace svg
 
         // All cell-descriptions are done and tiles have been created
         // Associate tiles with cell-descriptions now; coordinates of tiles are used for tile- and cell-descriptions
-        for (const auto& ct : coord_to_tile)
+        for (const auto& [coord, tdscr] : coord_to_tile)
         {
-            auto coord = ct.first;
-            auto descr = ct.second.first;
-            auto czone = ct.second.second;
+            auto [x, y] = coord;
+            auto [descr, czone] = tdscr;
 
             auto cell_descriptions = coord_to_cells.at(coord);
 
-            double x_pos = starting_offset_tile_x + coord.first  * tile_distance;
-            double y_pos = starting_offset_tile_y + coord.second * tile_distance;
+            double x_pos = starting_offset_tile_x + x * tile_distance;
+            double y_pos = starting_offset_tile_y + y * tile_distance;
 
             descr = fmt::format(descr, x_pos, y_pos, tile_colors[czone], cell_descriptions,
                                 simple ? "" : text_colors[czone],
@@ -169,18 +168,16 @@ namespace svg
         }
 
         // Add the descriptions of latch-tiles to the whole image
-        for (const auto& ct : coord_to_latch_tile)
+        for (const auto& [coord, ldscr] : coord_to_latch_tile)
         {
-            auto coord = ct.first;
-            auto descr = std::get<0>(ct.second);
-            auto czone_up = std::get<1>(ct.second);
-            auto latch_delay = std::get<2>(ct.second);
+            auto [x, y] = coord;
+            auto [descr, czone_up, latch_delay] = ldscr;
             auto czone_lo = czone_up + latch_delay % fcl->num_clocks();
 
             auto cell_descriptions = coord_to_latch_cells.at(coord);
 
-            double x_pos = starting_offset_latch_x + coord.first * tile_distance;
-            double y_pos = starting_offset_latch_y + coord.second * tile_distance;
+            double x_pos = starting_offset_latch_x + x * tile_distance;
+            double y_pos = starting_offset_latch_y + y * tile_distance;
 
             descr = fmt::format(descr, x_pos, y_pos, tile_colors[czone_lo], tile_colors[czone_up], cell_descriptions,
                                 text_colors[czone_up], simple ? "" : std::to_string(czone_up + 1),

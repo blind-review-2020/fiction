@@ -6,16 +6,20 @@
 #define FICTION_COMMANDS_H
 
 #include "version.h"
-#include "verilog_parser.h"
 #include "exact_pr.h"
 #include "orthogonal_pr.h"
+#include "design_checker.h"
 #include "fcn_gate_layout.h"
 #include "fcn_cell_layout.h"
 #include "qca_one_library.h"
+#include "equivalence_checker.h"
+#include "json_parser.h"
+#include "json_writer.h"
 #include "qca_writer.h"
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <alice/alice.hpp>
+#include <mockturtle/io/verilog_reader.hpp>
 
 namespace alice
 {
@@ -72,24 +76,26 @@ namespace alice
         explicit read_command(const environment::ptr& env)
                 :
                 command(env, "Reads one Verilog file or a directory of those and creates logic network objects which will be put "
-                             "into the respective store. In a directory, only files with extension '.v' are considered.")
+                             "into the respective store. The same works for JSON files from which logic network and gate layout "
+                             "objects are generated. In a directory, only files with extensions '.v' and '.json' are considered.")
         {
             add_option("filename", filename,
-                       "Verilog filename or directory of Verilog files")->required();
+                       "Verilog or JSON filename or directory of Verilog or JSON files")->required();
             add_flag("--sort,-s", sort,
                        "Sort files in given directory by file size prior to parsing");
         }
 
     protected:
         /**
-         * Function to perform the read call. Reads Verilog and creates a logic_network.
+         * Function to perform the read call. Reads Verilog and creates a logic_network or reads JSON and creates
+         * logic_network and gate_layout.
          */
         void execute() override
         {
             // checks for extension validity
             auto is_valid_extension = [](const auto& _f) -> bool
             {
-                const std::vector<std::string> extensions{{".v"}};
+                const std::vector<std::string> extensions{{".v"}, {".json"}};
                 return std::any_of(extensions.cbegin(), extensions.cend(),
                                    [&_f](const auto& _e) { return boost::filesystem::extension(_f) == _e; });
             };
@@ -136,21 +142,15 @@ namespace alice
                 // parse Verilog
                 if (boost::filesystem::extension(f) == ".v")
                 {
-                    auto name = boost::filesystem::path{f}.stem().string();
-                    auto ln = std::make_shared<logic_network>(std::move(name));
-
-                    lorina::diagnostic_engine diag{};
-                    if (lorina::read_verilog(f, verilog_parser{ln}, &diag) == lorina::return_code::success)
-                    {
-                        store<logic_network_ptr>().extend() = std::move(ln);
-                    }
-                    else
-                    {
-                        env->out() << "[e] parsing error in " << f << std::endl;
-                    }
+                    read_verilog(f);
                 }
                 // parse ...
                 // else if (boost::filesystem::extension(f) == ...)
+                else if(boost::filesystem::extension(f) == ".json")
+                {
+                    //std::cout << "Trying to read JSON" << std::endl;
+                    read_json(f);
+                }
             }
 
             // reset flags, necessary for some reason... alice bug?
@@ -159,6 +159,49 @@ namespace alice
         }
 
     private:
+        /**
+         * Handles creation of a logic_network object from the given Verilog file.
+         *
+         * @param f Path to the Verilog file to read
+         */
+        void read_verilog(std::string f)
+        {
+            auto name = boost::filesystem::path{f}.stem().string();
+                    logic_network ln{std::move(name)};
+
+                    if (lorina::diagnostic_engine diag{};
+                        lorina::read_verilog(f, mockturtle::verilog_reader{ln}, &diag) == lorina::return_code::success)
+                    {
+                        ln.substitute();
+                        store<logic_network_ptr>().extend() = std::make_shared<logic_network>(std::move(ln));
+                    }
+                    else
+                    {
+                        env->out() << "[e] parsing error in " << f << std::endl;
+                    }
+        }
+        /**
+         * Handles creation of logic_network and fcn_gate_layout objects from the given JSON file.
+         *
+         * @param f Path to the JSON file to read
+         */
+        void read_json(std::string f)
+        {
+            auto name = boost::filesystem::path{f}.stem().string();
+            auto ln = std::make_shared<logic_network>(std::move(name));
+            std::shared_ptr<fcn_gate_layout> fgl;
+            std::shared_ptr<fcn_gate_library> fglib;
+            try {
+                json_parser parser(f, ln, fgl);
+                parser.parse();
+            } catch (const std::invalid_argument &ex) {
+                std::cout << "[e] " << ex.what() << std::endl;
+            }
+
+            store<logic_network_ptr>().extend() = ln;
+
+            store<fcn_gate_layout_ptr>().extend() = fgl;
+        }
         /**
          * Verilog filename.
          */
@@ -313,9 +356,8 @@ namespace alice
 
             // perform exact P&R
             exact_pr pr{s.current(), std::move(config)};
-            auto result = pr.perform_place_and_route();
 
-            if (result.success)
+            if (auto result = pr.perform_place_and_route(); result.success)
             {
                 store<fcn_gate_layout_ptr>().extend() = pr.get_layout();
                 pr_result = result.json;
@@ -412,9 +454,8 @@ namespace alice
 
             // perform heuristic P&R
             orthogonal_pr pr{s.current(), phases, io_ports};
-            auto result = pr.perform_place_and_route();
 
-            if (result.success)
+            if (auto result = pr.perform_place_and_route(); result.success)
             {
                 store<fcn_gate_layout_ptr>().extend() = pr.get_layout();
                 pr_result = result.json;
@@ -458,6 +499,82 @@ namespace alice
     };
 
     ALICE_ADD_COMMAND(ortho, "Placement & Routing")
+
+
+    /**
+     * Performs design rule checks on the active gate layout. Checks for various design rule validations like crossing
+     * gates, too many wires in a tile, wrongly assigned directions, etc.
+     * See design_checker.h for more details.
+     */
+    class check_command : public command
+    {
+    public:
+        /**
+         * Standard constructor. Adds descriptive information, options, and flags.
+         *
+         * @param env alice::environment that specifies stores etc.
+         */
+        explicit check_command(const environment::ptr& env)
+                :
+                command(env, "Performs various design rule checks on the current gate layout in store. "
+                             "A full report can be logged and a summary is printed to standard output.")
+        {
+            add_option("--wire_limit,-w", wire_limit,
+                       "Maximum number of wires allowed per tile", true);
+        }
+
+    protected:
+        /**
+         * Function to perform the design rule check call. Generates a report and prints a summary.
+         */
+        void execute() override
+        {
+            auto& s = store<fcn_gate_layout_ptr>();
+
+            // error case: empty logic network store
+            if (s.empty())
+            {
+                env->out() << "[w] no gate layout in store" << std::endl;
+                reset_flags();
+                return;
+            }
+
+            design_checker c{s.current(), std::move(wire_limit)};
+            report = c.check(env->out());
+
+            reset_flags();
+        }
+
+        /**
+         * Logs the resulting information in a log file.
+         *
+         * @return JSON object containing information about the P&R process.
+         */
+        nlohmann::json log() const override
+        {
+            return report;
+        }
+
+        /**
+         * Reset all flags. Necessary for some reason... alice bug?
+         */
+        void reset_flags()
+        {
+            wire_limit = 1;
+        }
+
+    private:
+        /**
+         * Resulting logging information.
+         */
+        nlohmann::json report;
+        /**
+         * Maximum number of wires per tile.
+         */
+        std::size_t wire_limit = 1;
+    };
+
+    ALICE_ADD_COMMAND(check, "Verification")
 
 
     /**
@@ -603,6 +720,276 @@ namespace alice
     };
 
     ALICE_ADD_COMMAND(qca, "I/O")
+
+    /**
+     * Generates a JSON representation of the current gate or cell layout, depending on arguments.
+     * JSON format of layouts is based on
+     */
+    class export_command : public command
+    {
+    public:
+        /**
+         * Standard constructor. Adds descriptive information, options, and flags.
+         *
+         * @param env alice::environment that specifies stores etc.
+         */
+        export_command(const environment::ptr& env)
+                :
+                command(env, "Generates a JSON description of a cell or gate layout and writes it to a file.")
+        {
+            add_option("--library,-l", library,
+                       "Gate library to use {QCA-ONE=0}", true);
+            add_option("--file,-f", filename,
+                       "File to write export to", true);
+            add_flag("-g", "Export gate layout from store");
+            add_flag("-c", "Export cell layout from store");
+        }
+
+    protected:
+        /**
+         * Function to perform the export-to-json call. Generates a JSON-description of the current gate or cell layout,
+         * depending on given arguments.
+         */
+        void execute() override
+        {
+            if (is_set("-g"))
+            {
+                auto s = store<fcn_gate_layout_ptr>();
+
+                // error case: empty gate layout store
+                if (s.empty())
+                {
+                    std::cout << "[e] no gate layout in store" << std::endl;
+                    return;
+                }
+
+                fcn_gate_library_ptr lib = nullptr;
+
+                if (library == 0u)
+                    lib = std::make_shared<qca_one_library>(std::move(s.current()));
+                    // else if (library == 1u)
+                    // more libraries go here
+                else
+                {
+                    std::cout << "[e] identifier " << library << " does not refer to a supported gate library"
+                              << std::endl;
+                    return;
+                }
+
+                // The validity rules ensure that this works the way it is intended
+                json_writer exporter{lib};
+
+                try
+                {
+                    exported_layout = exporter.export_gate_layout();
+                }
+                catch (const std::invalid_argument& e)
+                {
+                    std::cout << "[e] " << e.what() << std::endl;
+                }
+
+            }
+            else if (is_set("-c"))
+            {
+                auto s = store<fcn_cell_layout_ptr>();
+
+                if (s.empty())
+                {
+                    std::cout << "[e] No cell layout in store!" << std::endl;
+                    return;
+                }
+
+                json_writer exporter{s.current()};
+
+                try
+                {
+                    exported_layout = exporter.export_cell_layout();
+                }
+                catch (std::invalid_argument& e)
+                {
+                    std::cout << "[e] " << e.what() << std::endl;
+                }
+
+            }
+
+            std::ofstream fs{};
+            fs.open(filename, std::ios::out | std::ios::trunc);
+
+            if (fs.fail())
+            {
+                std::cout << "[e] Could not open file " << filename << std::endl;
+                return;
+            }
+
+            fs << log() << std::endl;
+        }
+
+        /**
+         * This enforces rules for the flags given to the export command. Exactly one flag has to be set. The
+         * corresponding store cannot be empty.
+         */
+        rules validity_rules() const override
+        {
+            rule rule{};
+
+            if (is_set("-g"))
+                rule = has_store_element<fcn_gate_layout_ptr>(env);
+            else if (is_set("-c"))
+                rule = has_store_element<fcn_cell_layout_ptr>(env);
+            else
+                rule = std::make_pair([]() { return false; }, "either -g or -c need to be set");
+
+            return { rule, { [this]() { return is_set("-g") != is_set("-c"); }, "not both -g and -c can be set!" } };
+        }
+
+        /**
+         * Logs the resulting information in a log file.
+         *
+         * @return JSON object containing information about the P&R process.
+         */
+        nlohmann::json log() const override
+        {
+            return exported_layout;
+        }
+
+    private:
+        /**
+         * Gate or cell layout exported in JSON.
+         */
+        nlohmann::json exported_layout;
+        /**
+         * Identifier of gate library to use.
+         */
+        unsigned library = 0u;
+        /**
+         * Standard filename in case none is specified.
+         */
+        std::string filename = "./fiction_export.json";
+    };
+
+    ALICE_ADD_COMMAND(export, "I/O")
+
+    /**
+     * Performs equality checks on logic networks; either between specification and gate layout or between two gate
+     * layouts.
+     */
+    class equiv_command : public command
+    {
+    public:
+        /**
+         * Standard constructor. Adds descriptive information, options, and flags.
+         *
+         * @param env alice::environment that specifies stores etc.
+         */
+        equiv_command(const environment::ptr& env)
+                :
+                command(env, "Performs equivalence checks; either between specification and gate layout "
+                             "or between two gate layouts.")
+        {
+            add_option("--gate,-g", gli,
+                       "Gate layout to compare the current one against", false);
+            add_option("--faults,-f", faults,
+                       "Maximum number of faults to randomly insert into the circuit", true);
+        }
+
+    protected:
+        /**
+         * Function to perform the equivalence check. Differentiation between both modes is based on parameters given to
+         * the command-call.
+         */
+        void execute() override
+        {
+            auto s = store<fcn_gate_layout_ptr>();
+            if (s.empty())
+            {
+                std::cout << "[e] no gate layout in store" << std::endl;
+                return;
+            }
+
+            fgl1 = s.current();
+
+            std::string equivalent;
+
+            // check whether an index was given
+            if (gli >= 0)
+            {
+                // try accessing store at given index
+                try
+                {
+                    fgl2 = s[gli];
+                }
+                catch (...)
+                {
+                    std::cout << "[e] no gate layout in store at index " << gli << std::endl;
+                    return;
+                }
+
+                // check gate layouts for equality because network comparison is trivial in that case
+                if (fgl1 == fgl2)
+                {
+                    std::cout << "[e] gate layouts to compare are equal" << std::endl;
+                    return;
+                }
+
+                // create comparator
+                equivalence_checker nc{fgl1, fgl2, faults};
+                // and perform equivalence check
+                try
+                {
+                    result = nc.check();
+                }
+                catch (std::invalid_argument& e)
+                {
+                    std::cout << "[e] " << e.what() << std::endl;
+                }
+
+            }
+            else
+            {
+                equivalence_checker nc{fgl1, faults};
+                result = nc.check();
+            }
+
+            auto[cp, tp] = fgl1->critical_path_length_and_throughput();
+
+            std::cout << "[i] the circuits are " << (result.result ? (tp > 1 ? "weak " : "strong ") : "not ")
+                      << "equivalent" << (tp > 1 ? fmt::format(" (after {} clock cycles)", tp) : "") << std::endl;
+
+            // reset index for future calls
+            gli = -1;
+            faults = 0;
+        }
+
+        /**
+         * Logs the resulting information in a log file.
+         *
+         * @return JSON object containing information about the equivalence checking process.
+         */
+        nlohmann::json log() const override
+        {
+            return result.json;
+        }
+
+    private:
+        /**
+         * Index of gate layout that current gate layout is to be compared against.
+         */
+        int gli = -1;
+        /**
+         * Number of faults to be inserted.
+         */
+        std::size_t faults = 0;
+        /**
+         * Gate layout pointers for comparison of logic networks.
+         */
+        fcn_gate_layout_ptr fgl1, fgl2;
+        /**
+         * Stores the result of the last equivalence check for easier access to result and logging data.
+         */
+        equivalence_checker::check_result result;
+    };
+
+    ALICE_ADD_COMMAND(equiv, "Verification")
 }
 
 

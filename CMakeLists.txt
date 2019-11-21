@@ -3,11 +3,11 @@ project(fiction
         LANGUAGES CXX
         VERSION 0.2.1)
 
-# C++14
-set(CMAKE_CXX_STANDARD 14)
+# C++17
+set(CMAKE_CXX_STANDARD 17)
 
 # Set debug build options
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra -Wpedantic -Wno-unknown-pragmas")
 # Set release build options
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w -O3")
 # Set release mode to default
@@ -62,12 +62,12 @@ include_directories(${LIB_PREFIX}/cppitertools/)
 # Include alice
 add_subdirectory(${LIB_PREFIX}/alice/)
 
-# Include lorina
-add_subdirectory(${LIB_PREFIX}/lorina/)
+# Include mockturtle
+add_subdirectory(${LIB_PREFIX}/mockturtle/)
 
 # Build executable
 add_executable(fiction ${SOURCES})
 add_dependencies(fiction z3)
 
 # Link against Boost, Z3, alice, and lorina
-target_link_libraries(fiction ${Boost_LIBRARIES} ${Z3_DIR}/lib/libz3.so alice lorina)
+target_link_libraries(fiction ${Boost_LIBRARIES} ${Z3_DIR}/lib/libz3.so alice mockturtle)

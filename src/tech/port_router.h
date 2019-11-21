@@ -59,11 +59,15 @@ public:
         /**
          * Standard constructor.
          */
-        port(std::size_t x, std::size_t y) : x{x}, y{y} {}
+        port(std::size_t x, std::size_t y, size_t net) : x{x}, y{y}, net{net} {}
         /**
          * Positions.
          */
         std::size_t x, y;
+        /**
+         * Net-description of port; ports with equal net-attributes are connected.
+         */
+        std::size_t net;
         /**
          * Comparator for set insertion.
          *

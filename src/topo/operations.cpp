@@ -12,7 +12,7 @@ std::ostream& operator<<(std::ostream& os, const operation o) noexcept
 
 std::string str(const operation o) noexcept
 {
-    switch(o)
+    switch (o)
     {
         case operation::NONE:
             return "▢";

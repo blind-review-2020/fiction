@@ -46,7 +46,7 @@ namespace qca
                     default: break;
                 }
             }
-            file << boost::str(boost::format(COLOR) % red % green % blue);
+            file << fmt::format(COLOR, red, green, blue);
 
 
             file << BOUNDING_BOX_X << x_pos - CELL_SIZE / 2.0f << '\n';
@@ -152,12 +152,10 @@ namespace qca
                 }
             }
 
-            auto cell_name = fcl->get_cell_name(cell);
-            // override cell_name if cell is constant
-            cell_name = cell_type == fcn::CONST_0_CELL ? "-1.00" :
-                        cell_type == fcn::CONST_1_CELL ? "1.00"  : cell_name;
-            // if cell has a name
-            if (!cell_name.empty())
+            // override cell_name if cell is constant; if cell has a name
+            if (auto cell_name = cell_type == fcn::CONST_0_CELL ? "-1.00" :
+                                 cell_type == fcn::CONST_1_CELL ?  "1.00" : fcl->get_cell_name(cell);
+                !cell_name.empty())
             {
                 // open label
                 file << OPEN_QCAD_LABEL;
@@ -167,7 +165,7 @@ namespace qca
                 file << X_POS << x_pos << '\n';
                 file << Y_POS << y_pos - LABEL_Y_OFFSET << '\n';
                 file << B_SELECTED << FALSE << '\n';
-                file << boost::str(boost::format(COLOR) % red % green % blue);
+                file << fmt::format(COLOR, red, green, blue);
                 file << BOUNDING_BOX_X << x_pos - BB_X_OFFSET << '\n';
                 file << BOUNDING_BOX_Y << y_pos - BB_Y_OFFSET << '\n';
                 file << BOUNDING_BOX_CX << cell_name.size() * CHARACTER_WIDTH + BB_CX_OFFSET << '\n';

@@ -10,3 +10,6 @@
 [submodule "libs/z3"]
 	path = libs/z3
 	url = https://github.com/marcelwa/z3.git
+[submodule "libs/mockturtle"]
+	path = libs/mockturtle
+	url = https://github.com/marcelwa/mockturtle.git

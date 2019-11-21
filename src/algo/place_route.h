@@ -6,7 +6,7 @@
 #define FICTION_PLACE_ROUTE_H
 
 #include "fcn_gate_layout.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include <vector>
 #include <map>
 #include <unordered_map>

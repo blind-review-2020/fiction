@@ -1,7 +1,11 @@
+# Additions for DATE 2020
+
+Find the additions made for DATE 2020 in section [Verification](#verification).
+
 # Let there be a fiction
 
 This code base provides a framework for **fi**eld-**c**oupled **t**echnology-**i**ndependent **o**pen **n**anocomputing
-in C++14 using the [EPFL Logic Synthesis Libraries](https://github.com/lsils/lstools-showcase). *fiction* focuses on the
+in C++17 using the [EPFL Logic Synthesis Libraries](https://github.com/lsils/lstools-showcase). *fiction* focuses on the
 physical design of emerging nanotechnologies. As a promising class of post-CMOS technologies,
 [Field-coupled Nanocomputing (FCN)](https://www.springer.com/de/book/9783662437216) devices like Quantum-dot Cellular
 Automata (QCA) in manifold forms (e.g. atomic or molecular), Nanomagnet Logic (NML) devices, and many more, allow for high
@@ -145,6 +149,16 @@ Cell-level layouts:
 - Number of cells
 
 Learn more about [benchmarking and scripting](#benchmarking-and-scripting).
+
+### Logic synthesis
+
+*fiction* focuses on physical design, i.e. placement, routing, and timing, of circuits and takes logic synthesis for granted. As
+described [later](#preface), the tool [ABC](https://github.com/berkeley-abc/abc) for example could be used to generate synthesized
+logic networks which can be entered in *fiction* as circuit specifications.
+
+However, *fiction* makes use of the logic network library [mockturtle](https://github.com/lsils/mockturtle) by Mathias Soeken which
+comes with various logic synthesis and optimization algorithms. The reader might feel free to make use of them prior to physical
+design in order to obtain optimized layouts.
 
 ## Building process
 
@@ -349,6 +363,20 @@ This scalable approach only works on logic networks which are AOIGs (MAJ gates d
 [2DDWave](https://ieeexplore.ieee.org/document/1717097) and the algorithm can only be slightly parameterized
 (see `ortho -h`).
 
+### Verification
+
+To verify equivalence of generated layouts and their initial specification, use command `equiv`. Make sure, that layouts have been
+generated using I/O pins, i.e. with commands `exact -i` or `ortho -i`. The pins are needed to extract the correct pin labels and
+match them to their respective counterparts. Use `equiv -g <n>` where `<n>` is the store number of a previously generated layout,
+in order to check that layout for equivalence against the current one in store.
+
+#### Design rule checking
+
+Physical integrity of designed circuits can be verified using command `check`. It triggers a design rule checker which
+tests various topological and structural properties of the layout, logs all discrepancies, and outputs a summary report.
+The design rule checker especially aims at structurally verifying layouts that were generated with custom algorithms to
+find bugs quickly.
+
 ### Physical synthesis
 
 As mentioned above, gate-level layouts can be compiled down to cell-level ones in a physical synthesis step. An
@@ -448,8 +476,6 @@ If you use *fiction* in your work, I would appreciate if you cited
   month = {May}
 }
 ```
-
-The [paper](./bib/paper.pdf) and an overview [poster](./bib/poster.pdf) are also shipped with this repository.
 
 Furthermore, if the aforementioned physical design techniques are helpful for you, please find corresponding
 citations for the [exact approach](https://ieeexplore.ieee.org/document/8342060)

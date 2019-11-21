@@ -39,7 +39,7 @@ constexpr const std::size_t OP_COUNT = 14ul;
  */
 std::ostream& operator<<(std::ostream& os, const operation o) noexcept;
 /**
- * Returns a string representation of the given operation o.
+ * Returns a string representation of the given operation o suitable for printing layouts.
  *
  * @param o Operation whose string representation is desired.
  * @return String representation of o.

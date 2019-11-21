@@ -8,8 +8,8 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <optional>
 #include <unordered_map>
-#include <boost/optional.hpp>
 #include <boost/algorithm/string.hpp>
 
 namespace fcn_clock
@@ -158,6 +158,13 @@ public:
      * Move assignment operator is not available.
      */
     fcn_clocking_scheme& operator=(fcn_clocking_scheme&& rhs) = delete;
+    /**
+     * Equality check based on attribute equality.
+     *
+     * @param rhs The clocking scheme to test equality with
+     * @return Whether this clocking scheme and rhs are equal
+     */
+    bool operator==(fcn_clocking_scheme& rhs);
 };
 
 /**
@@ -192,9 +199,9 @@ static fcn_clocking_scheme bancs_3_clocking{"BANCS", fcn_clock::bancs_3, 3u, tru
  * Looks up a clocking scheme by its name. String comparison happens case-insensitive.
  *
  * @param name Name of desired clocking scheme.
- * @return Clocking scheme called name or boost::none if no string matches name.
+ * @return Clocking scheme called name or std::nullopt if no string matches name.
  */
-boost::optional<fcn_clocking_scheme> get_clocking_scheme(const std::string& name);
+std::optional<fcn_clocking_scheme> get_clocking_scheme(const std::string& name);
 
 
 #endif //FICTION_FCN_CLOCKING_SCHEME_H

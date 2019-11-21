@@ -113,7 +113,7 @@ std::size_t fcn_cell_layout::cell_count() const noexcept
     return type_map.size();
 }
 
-boost::optional<fcn_clock::zone> fcn_cell_layout::cell_clocking(const cell& c) const noexcept
+std::optional<fcn_clock::zone> fcn_cell_layout::cell_clocking(const cell& c) const noexcept
 {
     if (clocking.regular)
     {
@@ -128,7 +128,7 @@ boost::optional<fcn_clock::zone> fcn_cell_layout::cell_clocking(const cell& c) c
         }
         catch (const std::out_of_range&)
         {
-            return boost::none;
+            return std::nullopt;
         }
     }
 }
@@ -232,9 +232,8 @@ void fcn_cell_layout::map_irregular_clocking()
     for (auto&& c : this->ground_layer())
     {
         std::size_t x = c[X] / library->gate_x_size(), y = c[Y] / library->gate_y_size();
-        auto t = (*layout)(x, y);
 
-        if (auto clk = layout->tile_clocking(t))
+        if (auto t = (*layout)(x, y); auto clk = layout->tile_clocking(t))
             assign_clocking(c, *clk);
     }
 }
@@ -243,9 +242,9 @@ void fcn_cell_layout::assign_vias() noexcept
 {
     for (auto&& c : crossing_layers() | iter::filterfalse([this](const cell& _c){return is_free_cell(_c);}))
     {
-        auto surrounding = surrounding_2d(c) | iter::filterfalse([this](const cell& _c){return is_free_cell(_c);});
         // if number of surrounding cells is 1 or less, it is a via cell
-        if (std::distance(surrounding.begin(), surrounding.end()) <= 1u)
+        if (auto surrounding = surrounding_2d(c) | iter::filterfalse([this](const cell& _c)
+                { return is_free_cell(_c); }); std::distance(surrounding.begin(), surrounding.end()) <= 1u)
         {
             // change mode to via
             assign_cell_mode(c, fcn::cell_mode::VERTICAL);
