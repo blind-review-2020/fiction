@@ -1,6 +1,6 @@
-# Additions for DATE 2020
+# Additions for DAC 2020
 
-Find the additions made for DATE 2020 in section [Verification](#verification).
+Find the additions made for DAC 2020 in section [Verification](#verification).
 
 # Let there be a fiction
 
